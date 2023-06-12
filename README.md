@@ -12,7 +12,12 @@
 * Here we use the cosine formula to calculate the similarity of two vectors. We also use cosine_similarity of **sklearn** to compute similarity.  
 ![cosine](/image/cosine.png)  
 The formula for weighting in this model is:  
-$TF-IDF(t,d) = \frac{TF(t,d)*IDF(t)}{norm(d)}$
+$TF-IDF(t,d) = \frac{TF(t,d)*IDF(t)}{norm(d)}$  
+
+## 2. LSI(Latent Semantic Indexing) model
+* LSI is based on the idea that words that are used in the same context tend to have similar meanings. It analyzes the relationships between terms in a collection of documents to identify patterns and extract the underlying semantic structure.  
+* LSI model is typically built using a mathematical technique called Singular Value Decomposition (SVD) to generate a lower-dimensional representation of the documents.  
+![SVD](/image/SVD.png)  
 
 # III. data processing.
 * Because we don't know how to determine the appropriate term for the model, we decided to experiment with preprocessors such as removing special characters and numbers, removing stopwords, and stemming.
@@ -26,7 +31,8 @@ $TF-IDF(t,d) = \frac{TF(t,d)*IDF(t)}{norm(d)}$
 * After preprocessing and putting into the vector model, we will have a posting list like that:  
   ![posting list](/image/posting.png)  
 on the left is the term and on the right is the array containing the files where those terms appear.
-
+* In LSI, Use coherence to describe the semantic similarity and appearance pattern of important words in each topic. Then choose the best k dimensions.  
+  ![cohen](/image/cohen.png)
 # IV. Evaluation.
 * To evaluate the model we use Recall, Precision and MAP (Mean Average Precision) with 11 interpolation points from 0 to 1.  
 ## 1. vector model.
@@ -34,9 +40,19 @@ on the left is the term and on the right is the array containing the files where
 
 |  | (1) | (2) | (2) (3) | (2) (4) | (1) (3) | (1) (4) | (1) (3) (4) | (2) (3) (4) |
 |-------|-------|-------|-------|-------|-------|-------|-------|-------|
-| MAP | 0.32 | 0.33 | 0.15 | 0.327 | 0.13 | 0.31 | 0.14 | 0.16 |
-| Recall | 0.47 | 0.51 | 0.3 | 0.45 | 0.22 | 0.4 | 0.24 | 0.33 |
-| Precision | 0.22 | 0.19 | 0.12 | 0.24 | 0.14 | 0.29 | 0.12 | 0.1 |
+| MAP | 0.32 | 0.33 | 0.34 | 0.327 | 0.36 | 0.31 | 0.358 | 0.37 |
+| Recall | 0.47 | 0.51 | 0.5 | 0.45 | 0.6 | 0.4 | 0.54 | 0.59 |
+| Precision | 0.22 | 0.19 | 0.26 | 0.24 | 0.16 | 0.29 | 0.22 | 0.17 |
 | Time | 2s | 2s | 2s | 3s | 3s | 2s | 3s | 3s |
   
-* From the above results, we can see that Porter's stemmer treatment is not suitable because in cases where (3) stemming occurs, the rating scales are low. Removing digit values and not removing doesn't affect the results too much either, but it seems to remove numbers slightly better. And removing stopwords has not changed much.
+* From the above results we can see that the running time of the model ranges from 2 to 3 seconds, the threshold ranges from 0.15 to 0.2. For the above document, we can see that Porter's stemmer is suitable. Removing the digit values and not removing them also doesn't affect the results too much. And deleting stopwords does not change much, but from the above results, removing stopwords reduces MAP and Recall.
+## 2. LSI model
+* In LSI, We will experiment with the following cases (1): preprocessing data without stemming, (2): preprocessing data without stemming and not removing stopwords, (3): preprocessing handle the full steps. During the evaluation, select top_k documents = 12:
+
+|     | (1)    | (2)    | (3)    |
+|----------|----------|----------|----------|
+| MAP | 28.3% | 24% | 27.2% |
+| Recall | 38.45% | 41.22% | 40% |
+| Precision | 23.6% | 15% | 24% |
+| Time | 5s | 7s | 5s |
+* From the results of the above two models, it shows that the vector model has a better drawing than LSI in terms of query results and runtime.
